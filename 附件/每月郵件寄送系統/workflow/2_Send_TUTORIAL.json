@@ -1,0 +1,1025 @@
+{
+  "name": "2_Send_TUTORIAL",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "email_state_info",
+          "mode": "list",
+          "cachedResultName": "email_state_info"
+        },
+        "limit": 400,
+        "where": {
+          "values": [
+            {
+              "column": "is_send",
+              "value": "false"
+            }
+          ]
+        },
+        "sort": {
+          "values": [
+            {
+              "column": "identity"
+            },
+            {
+              "column": "project_code"
+            }
+          ]
+        },
+        "options": {
+          "outputColumns": [
+            "id",
+            "identity",
+            "name",
+            "email",
+            "project_code",
+            "project_name"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1728,
+        1168
+      ],
+      "id": "c80326d9-66ba-48cc-8181-250d142c3e04",
+      "name": "取得郵件寄送對象資訊",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5cae36f4-dbab-4acc-8052-993964e04244",
+              "leftValue": "={{ $json.identity }}",
+              "rightValue": "助理",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1920,
+        1168
+      ],
+      "id": "cfac185b-aca9-4264-9441-aa735e28c6b3",
+      "name": "助理或教授"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=【溫馨提醒】敬請您完成{{ $json.roc_date }}份研究計畫薪資流程，感謝您的協助。 [Gentle Reminder] Kindly complete the salary process for the {{ $json.ad_date }} research project. Thank you for your cooperation",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>研究計畫薪資流程溫馨提醒</title>\n</head>\n<body style=\"font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;\">\n  <div style=\"max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; background-color: #f9f9f9;\">\n    \n    <p>親愛的{{ $json.name }}{{ $json.identity }}，您好：</p>\n    <p>提醒您完成{{ $json.roc_date }}兼任助理薪資造冊作業。</p>\n    \n    <p style=\"background-color: #eee; padding: 10px; border-radius: 5px;\">\n      計畫編號： {{ $json.project_code }}<br>\n      計畫名稱： {{ $json.project_name }}\n    </p>\n\n    <p>請依照以下流程至 <a href=\"https://lms.ntpu.edu.tw/site/assistant\" style=\"color: #007bff; text-decoration: underline;\">「兼職人員保險管理系統」1.5兼職助理勞健保整合系統_登入網址</a> 操作， <strong>請勿自行造冊</strong>，謝謝您！</p>\n\n    <p style=\"font-weight: bold; margin-top: 20px; color: #0056b3;\">作業流程：</p>\n    <ol style=\"padding-left: 20px; margin: 0 0 20px 0;\">\n      <li style=\"margin-bottom: 10px;\"><strong>受聘助理：</strong> 登入系統 →「聘僱文件填報」→ 填寫{{ $json.roc_month }}份工時表／進度報告</li>\n      <li style=\"margin-bottom: 10px;\"><strong>受聘助理：</strong> 點選「送審」送交計畫主持人</li>\n      <li style=\"margin-bottom: 10px;\"><strong>計畫主持人：</strong> 登入「聘僱文件填報管理」→ 審核{{ $json.roc_month }}份資料</li>\n      <li style=\"margin-bottom: 10px;\"><strong>計畫主持人：</strong> 登入「計畫預算管理」→「每月薪資確認」→ 選擇{{ $json.roc_month }}份 → 點選「送彙整」</li>\n      <li style=\"margin-bottom: 10px;\"><strong>研發處：</strong> 統一造冊，約7–11個工作天內入帳</li>\n    </ol>\n      \n    <hr style=\"border: 0; border-top: 1px solid #ccc; margin: 20px 0;\">\n    \n    <p style=\"font-weight: bold;\">Dear {{ $json.id_en }} {{ $json.name }},</p>\n    <p>This is a reminder to assist your students in completing the {{ $json.ad_date }} salary processing for part-time research assistants.</p>\n    \n    <p style=\"background-color: #eee; padding: 10px; border-radius: 5px;\">\n      Project number：{{ $json.project_code }}<br>\n      Project name： {{ $json.project_name }}\n    </p>\n\n    <p>Please follow the steps below in the <a href=\"https://lms.ntpu.edu.tw/site/assistant\" style=\"color: #007bff; text-decoration: underline;\">Part-Time Personnel Insurance Management System</a>.</p>\n    <p>Thank you for your cooperation!</p>\n\n    <p style=\"font-weight: bold; margin-top: 20px; color: #0056b3;\">Procedure:</p>\n    <ol style=\"padding-left: 20px; margin: 0 0 20px 0;\">\n      <li style=\"margin-bottom: 10px;\"><strong>Assistant:</strong> log in → Employment Document Submission → Fill in {{ $json.ad_month }} Work Hours or Progress Report</li>\n      <li style=\"margin-bottom: 10px;\"><strong>Assistant:</strong> click Submit for Review to send to the project PI</li>\n      <li style=\"margin-bottom: 10px;\"><strong>Professor:</strong> log in to Employment Document Management → Reviews and approves {{ $json.ad_month }} records</li>\n      <li style=\"margin-bottom: 10px;\"><strong>Professor:</strong> log in to Project Budget Management → Monthly Salary Confirmation → Select {{ $json.ad_month }} → Click Submit for Consolidation</li>\n      <li style=\"margin-bottom: 10px;\"><strong>The R&D Office:</strong> will finalize the salary sheets. Payments are expected within 7–11 working days.</li>\n    </ol>\n    \n    <hr style=\"border: 0; border-top: 1px solid #ccc; margin: 20px 0;\">\n    \n    <p>如有相關須協助事項，可來電研發處洽詢，聯繫分機：66162胡小姐</p>\n    <p style=\"text-align: right; margin-top: 30px;\">君華 敬上</p>\n    \n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2960,
+        800
+      ],
+      "id": "d3d254bf-85b1-45ff-b4a8-e87f55093d0d",
+      "name": "寄送信件",
+      "webhookId": "7dcf397c-999f-4866-aecc-375c5368afa7",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rbnNun8AWt5w3Gmf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "email_state_info",
+          "mode": "list",
+          "cachedResultName": "email_state_info"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_send": true,
+            "id": "={{ $('迴圈 - 郵件寄送').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "identity",
+              "displayName": "identity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "project_code",
+              "displayName": "project_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "project_name",
+              "displayName": "project_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "is_send",
+              "displayName": "is_send",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3136,
+        800
+      ],
+      "id": "18c94824-4afd-4ee1-bad8-e6bf2450a9f7",
+      "name": "郵件寄送對象狀態更新",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3312,
+        800
+      ],
+      "id": "6f49eb7f-82f6-49a7-8caa-e0e374ef4f52",
+      "name": "等待",
+      "webhookId": "ee427732-cb64-4267-9819-6b0643a27c56"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 4,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2016,
+        640
+      ],
+      "id": "261e9796-c2d8-4e2f-a557-21d6d1d7a60e",
+      "name": "合併日期格式"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2304,
+        1168
+      ],
+      "id": "b1b62c46-d5b5-4793-bc25-333ad9486c78",
+      "name": "合併助理&教授資訊"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2560,
+        800
+      ],
+      "id": "53876721-d36c-455d-b129-fead883bf11a",
+      "name": "合併所有郵件變數"
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸出",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 267204560,
+          "mode": "list",
+          "cachedResultName": "郵件寄送狀態",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit#gid=267204560"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2576,
+        1072
+      ],
+      "id": "0aba3a11-b5be-4152-b7ec-9a550001e9b7",
+      "name": "清空工作表 - 郵件寄送狀態",
+      "retryOnFail": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "email_state_info",
+          "mode": "list",
+          "cachedResultName": "email_state_info"
+        },
+        "returnAll": true,
+        "sort": {
+          "values": [
+            {
+              "column": "identity"
+            },
+            {
+              "column": "project_code"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2784,
+        1072
+      ],
+      "id": "f2970de7-720a-44e1-927b-55c7e8ee1e37",
+      "name": "取得郵件寄送狀態",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸出",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 267204560,
+          "mode": "list",
+          "cachedResultName": "郵件寄送狀態",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit#gid=267204560"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "身分": "={{ $json.identity }}",
+            "姓名": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "計畫代碼": "={{ $json.project_code }}",
+            "計畫名稱": "={{ $json.project_name }}",
+            "郵件是否已寄送": "={{ $json.is_send }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "身分",
+              "displayName": "身分",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "姓名",
+              "displayName": "姓名",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "計畫代碼",
+              "displayName": "計畫代碼",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "計畫名稱",
+              "displayName": "計畫名稱",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "郵件是否已寄送",
+              "displayName": "郵件是否已寄送",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3152,
+        1072
+      ],
+      "id": "1a89c1f9-871e-4a87-ae77-1b31b89e99bd",
+      "name": "更新工作表 - 郵件寄送狀態",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 500,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2976,
+        1072
+      ],
+      "id": "aca5b647-7994-4df6-8aff-3ee4182843be",
+      "name": "迴圈 - 工作表更新"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3328,
+        1072
+      ],
+      "id": "41f23a04-6774-4132-bf1c-0047a8bab286",
+      "name": "等待 2",
+      "webhookId": "36d55264-b65a-4e8f-ae75-f88a4952100a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54a5d624-a9b7-4bd5-a090-3330e71bd142",
+              "name": "id_en",
+              "value": "Assistant",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2112,
+        1088
+      ],
+      "id": "32aab0bc-00a8-4293-988e-7a4b3ee17b32",
+      "name": "新增助理變數"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54a5d624-a9b7-4bd5-a090-3330e71bd142",
+              "name": "id_en",
+              "value": "Professor",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2112,
+        1248
+      ],
+      "id": "dabe31e2-4fc0-4653-bdae-c2b8dfc4e3f2",
+      "name": "新增教授變數"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2768,
+        800
+      ],
+      "id": "7c45d951-f21b-4e17-b1be-d6cf685f90af",
+      "name": "迴圈 - 郵件寄送"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $now }}",
+        "format": "custom",
+        "customFormat": "yyyy/M",
+        "outputFieldName": "roc_date",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        432
+      ],
+      "id": "229de3eb-cc50-4926-9917-699a424384d8",
+      "name": "ROC Date1"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $now }}",
+        "format": "custom",
+        "customFormat": "M月",
+        "outputFieldName": "roc_month",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        720
+      ],
+      "id": "2ec353b2-eb79-4ceb-b434-094401b2c01f",
+      "name": "ROC Month1"
+    },
+    {
+      "parameters": {
+        "content": "## 創建各個日期格式",
+        "height": 640,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1696,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "dc014027-ec8a-4b28-b7cc-267266cd1264",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 取得所有輸入項目，確保它是一個陣列\nconst items = $input.all(); \n\n// 使用 .map() 遍歷陣列中的每一個項目\nreturn items.map(item => {\n    // === 您的民國年邏輯放在這裡 ===\n    \n    // 存取前一個 Date & Time 節點的輸出資料\n    // 請確認前一個節點輸出資料的欄位名稱 (例如：formattedDate)\n    const inputDate = item.json.roc_date; \n    \n    // 分割年/月\n    const [year, month] = inputDate.split('/');\n    \n    // 計算民國年 (西元年 - 1911)\n    const rocYear = parseInt(year) - 1911;\n    \n    // 將計算結果寫入新的欄位\n    item.json.roc_date = `${rocYear}年${month}月`;\n    \n    // 回傳處理後的項目\n    return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        432
+      ],
+      "id": "e3a962d7-830c-4d64-8970-0c7ac953104b",
+      "name": "AD to ROC1"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $now }}",
+        "format": "custom",
+        "customFormat": "MMMM yyyy",
+        "outputFieldName": "ad_date",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        576
+      ],
+      "id": "d2cf7c66-f9b4-49fa-beab-55e3ea247eac",
+      "name": "AD Date1"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $now }}",
+        "format": "custom",
+        "customFormat": "MMMM",
+        "outputFieldName": "ad_month",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        864
+      ],
+      "id": "145a8751-af82-4283-881f-87e931c657d0",
+      "name": "AD Month1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        720
+      ],
+      "id": "8c1210f7-def4-47c1-8f15-c2f0353935af",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "content": "## 根據身分新增對應變數",
+        "height": 384,
+        "width": 528,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1904,
+        1024
+      ],
+      "typeVersion": 1,
+      "id": "623231eb-bc5c-49fc-8529-886aa9dbf4d5",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 寄送郵件迴圈",
+        "height": 272,
+        "width": 784,
+        "color": "#387475"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2704,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "90b55142-b5cf-4698-8fc2-c44d6a636312",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 更新郵件寄送狀態試算表",
+        "height": 256,
+        "width": 976,
+        "color": "#436D2C"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2512,
+        1008
+      ],
+      "typeVersion": 1,
+      "id": "2f79eece-f96d-49c3-bd07-38fff968e9ea",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "取得郵件寄送對象資訊": {
+      "main": [
+        [
+          {
+            "node": "助理或教授",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "助理或教授": {
+      "main": [
+        [
+          {
+            "node": "新增助理變數",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "新增教授變數",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "寄送信件": {
+      "main": [
+        [
+          {
+            "node": "郵件寄送對象狀態更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "郵件寄送對象狀態更新": {
+      "main": [
+        [
+          {
+            "node": "等待",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "等待": {
+      "main": [
+        [
+          {
+            "node": "迴圈 - 郵件寄送",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "合併日期格式": {
+      "main": [
+        [
+          {
+            "node": "合併所有郵件變數",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "合併助理&教授資訊": {
+      "main": [
+        [
+          {
+            "node": "合併所有郵件變數",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "合併所有郵件變數": {
+      "main": [
+        [
+          {
+            "node": "迴圈 - 郵件寄送",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "清空工作表 - 郵件寄送狀態": {
+      "main": [
+        [
+          {
+            "node": "取得郵件寄送狀態",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得郵件寄送狀態": {
+      "main": [
+        [
+          {
+            "node": "迴圈 - 工作表更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "更新工作表 - 郵件寄送狀態": {
+      "main": [
+        [
+          {
+            "node": "等待 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "迴圈 - 工作表更新": {
+      "main": [
+        [],
+        [
+          {
+            "node": "更新工作表 - 郵件寄送狀態",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "等待 2": {
+      "main": [
+        [
+          {
+            "node": "迴圈 - 工作表更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "新增助理變數": {
+      "main": [
+        [
+          {
+            "node": "合併助理&教授資訊",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "新增教授變數": {
+      "main": [
+        [
+          {
+            "node": "合併助理&教授資訊",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "迴圈 - 郵件寄送": {
+      "main": [
+        [
+          {
+            "node": "清空工作表 - 郵件寄送狀態",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "寄送信件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROC Date1": {
+      "main": [
+        [
+          {
+            "node": "AD to ROC1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROC Month1": {
+      "main": [
+        [
+          {
+            "node": "合併日期格式",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "AD to ROC1": {
+      "main": [
+        [
+          {
+            "node": "合併日期格式",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AD Date1": {
+      "main": [
+        [
+          {
+            "node": "合併日期格式",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AD Month1": {
+      "main": [
+        [
+          {
+            "node": "合併日期格式",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "ROC Date1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AD Date1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ROC Month1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AD Month1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "取得郵件寄送對象資訊",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2552963f-b4bd-4d1c-93ea-1d859a9d1529",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b40e68a6653f4000209fcba18fa47951d233f1171a6a3fcbcd7f91c7df16f563"
+  },
+  "id": "luweAVLGpwQLH2SX",
+  "tags": []
+}

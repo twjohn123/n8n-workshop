@@ -1,0 +1,1353 @@
+{
+  "name": "1_Upload_TUTORIAL",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "project_host_info",
+          "mode": "list",
+          "cachedResultName": "project_host_info"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "host_name": "={{ $json.host_name }}",
+            "host_email": "={{ $json.host_email }}"
+          },
+          "matchingColumns": [
+            "host_name"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "host_name",
+              "displayName": "host_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "host_email",
+              "displayName": "host_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1104,
+        400
+      ],
+      "id": "b1a0dca5-8ca6-4457-9d71-a14d8f125ad4",
+      "name": "Upsert project_host_info",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 上傳資料到資料庫",
+        "height": 576,
+        "width": 1488
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "eb054d35-7345-48e5-812b-1c462f1a5110",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 將資料庫中的資料交給 AI (Google Gemini) 做處理",
+        "height": 272,
+        "width": 1728,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "2c786289-7543-49cc-9153-d5c453b329fb",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "TRUNCATE TABLE part_time_main_info RESTART IDENTITY;\nTRUNCATE TABLE project_code_info RESTART IDENTITY;\nTRUNCATE TABLE project_host_info RESTART IDENTITY;\nTRUNCATE TABLE email_state_info RESTART IDENTITY;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        288,
+        224
+      ],
+      "id": "5eb856b0-301c-4a8a-8553-30d60d239bd4",
+      "name": "重製所有 table",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * 輔助函式：將民國日期字串（例如 113/07/01）轉換為標準西元日期字串（YYYY-MM-DD）\n * @param {string} rocDateString - 待轉換的民國日期字串\n * @returns {string|null} - 轉換後的標準日期字串，或 null (如果輸入無效)\n */\nfunction convertRocToWesternDate(rocDateString) {\n  if (!rocDateString || typeof rocDateString !== 'string') {\n    return null;\n  }\n  \n  // 處理 '/' 或 '.' 作為分隔符\n  const parts = rocDateString.split(/[./]/); \n  \n  if (parts.length === 3) {\n    const rocYear = parseInt(parts[0], 10);\n    \n    // 檢查年是否為數字\n    if (isNaN(rocYear)) {\n      return null;\n    }\n    \n    const month = parts[1].padStart(2, '0');\n    const day = parts[2].padStart(2, '0');\n\n    // 將民國年轉為西元年\n    const westernYear = 1911 + rocYear;\n    \n    // 組合為標準 YYYY-MM-DD 格式\n    return `${westernYear}-${month}-${day}`;\n  }\n  \n  return null;\n}\n\n\n// 主程式邏輯：遍歷所有項目並直接覆蓋原始日期欄位\nfor (const item of $input.all()) {\n  const json = item.json;\n\n  // 1. 處理 '聘期起始日'\n  const rocStartDate = json[\"聘期起始日\"]; \n  // 直接將轉換結果賦值回原欄位\n  json[\"聘期起始日\"] = convertRocToWesternDate(rocStartDate);\n  \n  // 2. 處理 '聘期結束日'\n  const rocEndDate = json[\"聘期結束日\"]; \n  // 直接將轉換結果賦值回原欄位\n  json[\"聘期結束日\"] = convertRocToWesternDate(rocEndDate);\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        48
+      ],
+      "id": "b2bb832b-0e34-4aca-83e1-a4d603b1df8b",
+      "name": "變換日期格式"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1312,
+        368
+      ],
+      "id": "e8d99067-6aae-43d3-b70a-fc2b56af03d8",
+      "name": "等待所有分支完成"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        224
+      ],
+      "id": "5c33d8b0-8a84-49ae-bd94-cc4607a27a53",
+      "name": "開始執行"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸入",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "PartTimeMainInfo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        48
+      ],
+      "id": "1a76063d-ca99-45aa-899b-0e4b08328775",
+      "name": "Get PartTimeMainInfo",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸入",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1451263252,
+          "mode": "list",
+          "cachedResultName": "ProjectCodeInfo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U/edit#gid=1451263252"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        224
+      ],
+      "id": "e14cf004-136f-4aab-b8d6-91e3de8415b4",
+      "name": "Get ProjectCodeInfo",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸入",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 942728175,
+          "mode": "list",
+          "cachedResultName": "ProjectHostInfo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DC0w0z8OyS8etVdwMFWRrCVKGPYaBfbvimiu6BXkD5U/edit#gid=942728175"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        400
+      ],
+      "id": "0e6ea7a7-fbc2-40ad-87d7-fc273f9c08f0",
+      "name": "Get ProjectHostInfo",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// rawJsonString 為從 Gemini 拿到的 text\nlet rawJsonString = $input.first().json.content.parts[0].text;\n\n// 移除可能的換行符號並檢查是否缺少中括號\nrawJsonString = rawJsonString.trim();\nif (!rawJsonString.startsWith('[')) {\n    rawJsonString = `[${rawJsonString}]`;\n}\n\ntry {\n    const parsedArray = JSON.parse(rawJsonString);\n    return parsedArray.map(item => ({ json: item }));\n} catch (e) {\n    throw new Error(\"JSON 解析失敗，請檢查 Gemini 輸出格式是否正確：\" + e.message);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        672
+      ],
+      "id": "22f5b3ef-3b21-46a0-bc48-1096e9b78c66",
+      "name": "提取AI回應並分割物件"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst projectMapArray = [];\n\nfor (const item of items) {\n    const id = item.json.id; // 讀取 id 欄位\n    const query = item.json.Query || \"\"; // 讀取 Query 欄位\n    \n    // 進行單引號跳脫處理，防止 SQL 注入或語法錯誤\n    const safeQuery = query.replace(/'/g, \"''\");\n    \n    // 格式化為 SQL VALUES 語法\n    projectMapArray.push(`(${id}, '${safeQuery}')`);\n}\n\nconst projectMapString = projectMapArray.join(', ');\n\n// 回傳 json 物件\nreturn [{\n    json: {\n        sql_values: projectMapString\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        672
+      ],
+      "id": "b4a77c0a-fe5f-4d9a-bb44-f96228e07e33",
+      "name": "轉為SQL物件"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "project_code_info",
+          "mode": "list",
+          "cachedResultName": "project_code_info"
+        },
+        "returnAll": true,
+        "options": {
+          "outputColumns": [
+            "id",
+            "raw_filter"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -80,
+        672
+      ],
+      "id": "05bbe25c-3f5d-4263-bd22-c54e3f7dfb7c",
+      "name": "提取project_code_info資料",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 處理計畫代碼與條件的組合\nconst formattedInput = items\n  .filter(item => \n    item.json.id != null && \n    item.json.raw_filter != null // 檢查實際存在的欄位\n  )\n  .map(item => {\n    // 範例格式：(id: 1, 條件: 109A開頭)\n    return `(id: ${item.json.id}, 條件: ${item.json.raw_filter})`;\n  })\n  .join(',');\n\nreturn [{ json: { gemini_input: formattedInput } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        672
+      ],
+      "id": "5310dd15-fd0c-4f77-993c-6436ffb3f17f",
+      "name": "將資料整合"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#任務：\n請根據以下的輸入來建立對應的輸出 SQL LIKE 語句，請僅回傳符合格式的 JSON 陣列，不要包含 Markdown 語法、空格或額外的解釋文字，並將回應使用[]包裝起來。\n\n#輸入範例：\n(id: 1, 條件: 109A開頭),(id: 2, 條件: 110A開頭)\n\n#輸出範例：\n[{“id”:1,“Query”:“109A%”},{“id”:2,”Query”:“110A%”}]\n\n#輸入：\n{{ $json.gemini_input }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        272,
+        672
+      ],
+      "id": "97370040-61ea-4672-bef2-cfabf1a2d84a",
+      "name": "AI建立SQL語句",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nXf2q3FTpk25oL6B",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE project_code_info AS pci\nSET sql_filter = v.sql_val\nFROM (VALUES {{ $json.sql_values }}) AS v(id_val, sql_val)\nWHERE pci.id = v.id_val;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        928,
+        672
+      ],
+      "id": "cd482d54-3c9c-44ec-986b-c6df161c468f",
+      "name": "存入SQL語句",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c8950994-1618-47cb-8490-b8a9e75559f2",
+              "name": "name",
+              "value": "={{ $json['姓名'] }}",
+              "type": "string"
+            },
+            {
+              "id": "6de017a2-75c0-4193-ab1b-b607b9de0b92",
+              "name": "email",
+              "value": "={{ $json.EMail }}",
+              "type": "string"
+            },
+            {
+              "id": "f1b760dc-56b1-41cc-9670-a5db03009298",
+              "name": "start_date",
+              "value": "={{ $json['聘期起始日'] }}",
+              "type": "string"
+            },
+            {
+              "id": "a4a487bd-43f1-448e-aa1f-81edd2547fe5",
+              "name": "end_date",
+              "value": "={{ $json['聘期結束日'] }}",
+              "type": "string"
+            },
+            {
+              "id": "3c080bc7-750a-46dd-b009-a280955a66b0",
+              "name": "project_code",
+              "value": "={{ $json['本校計畫代碼'] }}",
+              "type": "string"
+            },
+            {
+              "id": "0ce7d33a-6990-4a47-ae81-9516e81c9b6e",
+              "name": "project_name",
+              "value": "={{ $json['計畫名稱'] }}",
+              "type": "string"
+            },
+            {
+              "id": "7695aa8d-eee2-4717-8faf-91b2fb13666d",
+              "name": "project_host",
+              "value": "={{ $json['計畫主持人'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        48
+      ],
+      "id": "382cb5c9-1b7a-473b-b0b5-93699dc20bd3",
+      "name": "欄位轉為屬性 1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b2bac4c-f684-4f78-9fd8-c06d1b7aff89",
+              "name": "raw_filter",
+              "value": "={{ $json['計畫代碼篩選條件'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        224
+      ],
+      "id": "8f9e3800-b644-406f-8c3b-6c105b8d5fa3",
+      "name": "欄位轉為屬性 2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "77545265-4398-4f5f-b3ec-73ec441d42e1",
+              "name": "host_name",
+              "value": "={{ $json['計畫主持人'] }}",
+              "type": "string"
+            },
+            {
+              "id": "af00fad6-98cc-4638-8f83-efce870379d9",
+              "name": "host_email",
+              "value": "={{ $json['計畫主持人EMail'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        400
+      ],
+      "id": "33ad1077-a7f5-45cb-abbd-9c44b79d4d8a",
+      "name": "欄位轉為屬性 3"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "part_time_main_info",
+          "mode": "list",
+          "cachedResultName": "part_time_main_info"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "start_date": "={{ $json.start_date }}",
+            "end_date": "={{ $json.end_date }}",
+            "project_code": "={{ $json.project_code }}",
+            "project_host": "={{ $json.project_host }}",
+            "project_name": "={{ $json.project_name }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "project_code",
+              "displayName": "project_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "project_name",
+              "displayName": "project_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "project_host",
+              "displayName": "project_host",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "code_filter_flag",
+              "displayName": "code_filter_flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "send_email_flag",
+              "displayName": "send_email_flag",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1104,
+        48
+      ],
+      "id": "2f936cbe-fed2-42bf-9fbc-10c836ca4a2f",
+      "name": "Insert part_time_main_info",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "project_code_info",
+          "mode": "list",
+          "cachedResultName": "project_code_info"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "raw_filter": "={{ $json.raw_filter }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "raw_filter",
+              "displayName": "raw_filter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sql_filter",
+              "displayName": "sql_filter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1104,
+        224
+      ],
+      "id": "bb7ae766-c406-4465-84b2-0ea8cab10423",
+      "name": "Insert project_code_info",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE part_time_main_info AS p\nSET \n    code_filter_flag = TRUE   -- 將篩選代碼旗標設為TRUE\nFROM project_code_info AS f\nWHERE p.project_code LIKE f.sql_filter\n  AND f.sql_filter IS NOT NULL\n  AND f.sql_filter != '';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1104,
+        672
+      ],
+      "id": "1efb4f40-b668-4f76-b74b-5922031f713c",
+      "name": "篩選計畫代碼",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 一、重製 email_state_info (刪除所有資料並將 id 計數歸零)\nTRUNCATE TABLE email_state_info RESTART IDENTITY;\n\n-- 二、從 part_time_main_info 和 project_host_info 中找出對應助理和教授資訊並加入進 email_state_info 中\nINSERT INTO email_state_info (identity, name, email, project_code, project_name, is_send)\n-- 1. 助理資訊\n(\nSELECT DISTINCT ON (name, project_code)\n    '助理' AS identity,\n    name,\n    email,\n    project_code,\n    project_name,\n    FALSE AS is_send\nFROM part_time_main_info\nWHERE send_email_flag = TRUE\nORDER BY name, project_code\n)\n\nUNION ALL\n\n-- 2. 教授 (計畫主持人) 資訊\n(\nSELECT DISTINCT ON (ptmi.project_host, ptmi.project_code)\n    '教授' AS identity,\n    ptmi.project_host AS name,\n    phi.host_email AS email,\n    ptmi.project_code,\n    ptmi.project_name,\n    FALSE AS is_send\nFROM part_time_main_info ptmi\nLEFT JOIN project_host_info phi ON ptmi.project_host = phi.host_name\nWHERE ptmi.send_email_flag = TRUE\nORDER BY ptmi.project_host, ptmi.project_code\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1456,
+        672
+      ],
+      "id": "d760147a-69b6-41d0-8879-6c7d8bf85083",
+      "name": "將寄送對象存入 email_state_info",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 1. [清理] 先將所有紀錄的 send_email_flag 重設為 FALSE，確保每次執行都是最新狀態\nUPDATE part_time_main_info\n  SET send_email_flag = FALSE;\n\n-- 2. [篩選與標記] 找出符合計畫名稱與日期規範的資料\nWITH month_boundaries AS \n(\n    SELECT \n        date_trunc('month', CURRENT_DATE)::date AS month_start,\n        (date_trunc('month', CURRENT_DATE) + interval '1 month - 1 day')::date AS month_end\n)\nUPDATE part_time_main_info AS ptmi\nSET \n    send_email_flag = TRUE\nFROM month_boundaries AS mb\nWHERE ptmi.code_filter_flag = TRUE          -- 條件 1：project_name 必須已有資料\n  AND ptmi.start_date <= mb.month_end       -- 條件 2：開始日期在今天之前\n  AND ptmi.end_date >= mb.month_start       -- 條件 3：結束日期落在本月之內",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1280,
+        672
+      ],
+      "id": "2b6483e1-97d0-4750-b759-36a1debb6d4c",
+      "name": "篩選寄送郵件對象",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸出",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 267204560,
+          "mode": "list",
+          "cachedResultName": "郵件寄送狀態",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit#gid=267204560"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        336,
+        944
+      ],
+      "id": "61881b52-c30a-4190-906f-1523ae262b5f",
+      "name": "清空工作表 - 郵件寄送狀態",
+      "retryOnFail": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "email_state_info",
+          "mode": "list",
+          "cachedResultName": "email_state_info"
+        },
+        "returnAll": true,
+        "sort": {
+          "values": [
+            {
+              "column": "identity"
+            },
+            {
+              "column": "project_code"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        544,
+        944
+      ],
+      "id": "0fb918d6-bc74-4e1d-bbd5-fbe8ec99c2a6",
+      "name": "取得郵件寄送狀態",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk",
+          "mode": "list",
+          "cachedResultName": "郵件資料_輸出",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 267204560,
+          "mode": "list",
+          "cachedResultName": "郵件寄送狀態",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ai7dqj4JIZz_m3PzEc7dRZPM4mWf6qK_diw1RFWqvBk/edit#gid=267204560"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "身分": "={{ $json.identity }}",
+            "姓名": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "計畫代碼": "={{ $json.project_code }}",
+            "計畫名稱": "={{ $json.project_name }}",
+            "郵件是否已寄送": "={{ $json.is_send }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "身分",
+              "displayName": "身分",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "姓名",
+              "displayName": "姓名",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "計畫代碼",
+              "displayName": "計畫代碼",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "計畫名稱",
+              "displayName": "計畫名稱",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "郵件是否已寄送",
+              "displayName": "郵件是否已寄送",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        944
+      ],
+      "id": "582aa97c-eac6-4ce8-a6da-05162ab0fc14",
+      "name": "更新工作表 - 郵件寄送狀態",
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NEAvfH13cc9T4BcZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 500,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        736,
+        944
+      ],
+      "id": "8fd978ee-01ce-42b1-96da-c3a6fba4d186",
+      "name": "迴圈 - 工作表更新"
+    },
+    {
+      "parameters": {
+        "content": "## 更新郵件寄送狀態試算表",
+        "height": 256,
+        "width": 976,
+        "color": "#436D2C"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        272,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "a7f12308-97e0-4267-b699-641bd5904f63",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        944
+      ],
+      "id": "8882c2d2-ce1a-480f-899e-4097c77671de",
+      "name": "等待",
+      "webhookId": "36d55264-b65a-4e8f-ae75-f88a4952100a"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upsert project_host_info": {
+      "main": [
+        [
+          {
+            "node": "等待所有分支完成",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "重製所有 table": {
+      "main": [
+        [
+          {
+            "node": "Get PartTimeMainInfo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get ProjectCodeInfo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get ProjectHostInfo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "變換日期格式": {
+      "main": [
+        [
+          {
+            "node": "欄位轉為屬性 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "等待所有分支完成": {
+      "main": [
+        [
+          {
+            "node": "提取project_code_info資料",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "開始執行": {
+      "main": [
+        [
+          {
+            "node": "重製所有 table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PartTimeMainInfo": {
+      "main": [
+        [
+          {
+            "node": "變換日期格式",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ProjectCodeInfo": {
+      "main": [
+        [
+          {
+            "node": "欄位轉為屬性 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ProjectHostInfo": {
+      "main": [
+        [
+          {
+            "node": "欄位轉為屬性 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "提取AI回應並分割物件": {
+      "main": [
+        [
+          {
+            "node": "轉為SQL物件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "轉為SQL物件": {
+      "main": [
+        [
+          {
+            "node": "存入SQL語句",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "提取project_code_info資料": {
+      "main": [
+        [
+          {
+            "node": "將資料整合",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "將資料整合": {
+      "main": [
+        [
+          {
+            "node": "AI建立SQL語句",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI建立SQL語句": {
+      "main": [
+        [
+          {
+            "node": "提取AI回應並分割物件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "存入SQL語句": {
+      "main": [
+        [
+          {
+            "node": "篩選計畫代碼",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "欄位轉為屬性 1": {
+      "main": [
+        [
+          {
+            "node": "Insert part_time_main_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "欄位轉為屬性 2": {
+      "main": [
+        [
+          {
+            "node": "Insert project_code_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "欄位轉為屬性 3": {
+      "main": [
+        [
+          {
+            "node": "Upsert project_host_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert part_time_main_info": {
+      "main": [
+        [
+          {
+            "node": "等待所有分支完成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert project_code_info": {
+      "main": [
+        [
+          {
+            "node": "等待所有分支完成",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "篩選計畫代碼": {
+      "main": [
+        [
+          {
+            "node": "篩選寄送郵件對象",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "篩選寄送郵件對象": {
+      "main": [
+        [
+          {
+            "node": "將寄送對象存入 email_state_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "清空工作表 - 郵件寄送狀態": {
+      "main": [
+        [
+          {
+            "node": "取得郵件寄送狀態",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得郵件寄送狀態": {
+      "main": [
+        [
+          {
+            "node": "迴圈 - 工作表更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "更新工作表 - 郵件寄送狀態": {
+      "main": [
+        [
+          {
+            "node": "等待",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "迴圈 - 工作表更新": {
+      "main": [
+        [],
+        [
+          {
+            "node": "更新工作表 - 郵件寄送狀態",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "將寄送對象存入 email_state_info": {
+      "main": [
+        [
+          {
+            "node": "清空工作表 - 郵件寄送狀態",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "等待": {
+      "main": [
+        [
+          {
+            "node": "迴圈 - 工作表更新",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "04a9e1ef-54e9-494c-bbd7-b0dc16d7e20a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b40e68a6653f4000209fcba18fa47951d233f1171a6a3fcbcd7f91c7df16f563"
+  },
+  "id": "gsrt0T65QWVQ4wDO",
+  "tags": []
+}

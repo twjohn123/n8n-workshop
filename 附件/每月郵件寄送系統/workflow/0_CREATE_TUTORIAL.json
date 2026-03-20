@@ -1,0 +1,195 @@
+{
+  "name": "0_CREATE_TUTORIAL",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a0602c72-b8f7-4fa0-ba68-43ef8f2ddc00",
+      "name": "開始執行"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DROP TABLE IF EXISTS part_time_main_info;\nDROP TABLE IF EXISTS project_code_info;\nDROP TABLE IF EXISTS project_host_info;\nDROP TABLE IF EXISTS email_state_info;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        0
+      ],
+      "id": "9320cdf7-bd12-43f3-85cd-0e6aae2488f9",
+      "name": "刪除所有table",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ----------------------------------------------------------------------\n-- 1. 主表：兼任人員主要資訊表 (part_time_main_info)\n-- ----------------------------------------------------------------------\n\n-- 主表：part_time_main_info\ncreate table if not exists part_time_main_info (\n  id                  bigserial primary key,\n  name                text,                     -- 姓名\n  email               text,                     -- EMail\n  start_date          date,                     -- 聘期起始日\n  end_date            date,                     -- 聘期結束日\n  project_code        text,                     -- 本校計畫代碼\n  project_name\t\t  text,\t\t\t\t\t\t-- 計畫名稱\n  project_host        text,                     -- 計畫主持人\n  \n  code_filter_flag    boolean default false,    -- 篩選旗標\n  send_email_flag     boolean default false     -- 寄信旗標\n\n);\n\n-- ----------------------------------------------------------------------\n-- 2. 索引建立\n-- ----------------------------------------------------------------------\n\n-- 建立索引以加快查詢速度\ncreate index if not exists idx_pt_main_info_code on part_time_main_info(project_code);\ncreate index if not exists idx_pt_main_info_email on part_time_main_info(email);\ncreate index if not exists idx_pt_main_info_name on part_time_main_info(name);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c755429d-2533-473f-88a9-fe70fd7603d8",
+      "name": "建立 part_time_main_info",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ----------------------------------------------------------------------\n-- 1. 主表：計畫代碼資訊表 (project_code_info)\n-- ----------------------------------------------------------------------\n\n-- 主表：project_code_info 儲存計畫主持人的資訊\ncreate table if not exists project_code_info (\n  id                  \t  bigserial primary key,\n  raw_filter              text unique,    -- 計畫代碼篩選條件\n  sql_filter              text unique\t  -- AI生成的SQL語句\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        0
+      ],
+      "id": "e6b2e9ed-9503-4f87-9b3d-e85a5edad3eb",
+      "name": "建立 project_code_info",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ----------------------------------------------------------------------\n-- 1. 主表：計畫主持人資訊表 (project_host_info)\n-- ----------------------------------------------------------------------\n\n-- 主表：project_host_info 儲存計畫主持人的資訊\ncreate table if not exists project_host_info (\n  id                  bigserial primary key,\n  host_name           text unique,             -- 計畫主持人\n  host_email          text                     -- 計畫主持人Email (設定 unique 確保不重複)\n);\n\n-- ----------------------------------------------------------------------\n-- 2. 索引建立\n-- ----------------------------------------------------------------------\n\n-- 建立索引以加快查詢速度\ncreate index if not exists idx_host_info_name on project_host_info(host_name);\ncreate index if not exists idx_host_info_email on project_host_info(host_email);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        0
+      ],
+      "id": "2647b03f-a365-4b03-b565-7c59fbd7def7",
+      "name": "建立 project_host_info",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ----------------------------------------------------------------------\n-- 1. 主表：郵件寄送狀態表 (email_state_info)\n-- ----------------------------------------------------------------------\n\n-- 主表：project_host_info 儲存計畫主持人的資訊\ncreate table if not exists email_state_info (\n  id                  bigserial primary key, \n  identity            text,                  -- 身分 (助理、教授)\n  name                text,                  -- 姓名\n  email               text,                  -- email\n  project_code        text,                  -- 計畫代碼\n  project_name        text,                  -- 計畫名稱\n  is_send             boolean default false  -- 郵件是否已寄送\n);\n\n-- ----------------------------------------------------------------------\n-- 2. 索引建立\n-- ----------------------------------------------------------------------\n\n-- 建立索引以加快查詢速度\ncreate index if not exists idx_email_state_name on email_state_info(name);\ncreate index if not exists idx_email_state_email on email_state_info(email);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "fd8f6d2e-bd26-4547-9132-7042521b12f5",
+      "name": "建立 email_state_info",
+      "credentials": {
+        "postgres": {
+          "id": "aGRtknH3a9AK2iqO",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "開始執行": {
+      "main": [
+        [
+          {
+            "node": "刪除所有table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "刪除所有table": {
+      "main": [
+        [
+          {
+            "node": "建立 part_time_main_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "建立 part_time_main_info": {
+      "main": [
+        [
+          {
+            "node": "建立 project_code_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "建立 project_code_info": {
+      "main": [
+        [
+          {
+            "node": "建立 project_host_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "建立 project_host_info": {
+      "main": [
+        [
+          {
+            "node": "建立 email_state_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b1a8b7c5-13eb-4dae-930a-bd4f1c212ded",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b40e68a6653f4000209fcba18fa47951d233f1171a6a3fcbcd7f91c7df16f563"
+  },
+  "id": "ywk9JzoATPqgybgr",
+  "tags": []
+}
